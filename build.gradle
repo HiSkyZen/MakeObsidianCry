@@ -1,0 +1,94 @@
+plugins {
+    id 'idea'
+    id 'net.minecraftforge.gradle'
+    id 'org.spongepowered.mixin'
+    id 'maven-publish'
+}
+
+def ENV = System.getenv()
+
+version = "v${mod_version}-SNAPSHOT-${ENV.GITHUB_RUN_NUMBER ?: "LOCAL"}"
+group = mod_group_id
+archivesBaseName = "MakeObsidianCry-${artifact_minecraft_version}"
+
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = 17
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+minecraft {
+    mappings channel: 'official', version: "${minecraft_version}"
+}
+
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+def replaceProperties = [
+    minecraft_version: minecraft_version,
+    minecraft_version_range: minecraft_version_range.replace("[%base]", minecraft_version),
+    forge_version_range: forge_version.split("\\.").first(),
+    version: version,
+]
+
+def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta']
+
+processResources {
+    inputs.properties replaceProperties
+    replaceProperties.put 'project', project
+
+    duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE
+
+    filesMatching(resourceTargets) {
+        expand replaceProperties
+    }
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : "MakeObsidianCry",
+                "Specification-Vendor"    : "HiSkyZen",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : "HiSkyZen",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+        ])
+    }
+}
+
+void addLicense(jarTask) {
+    jarTask.from('LICENSE')
+}
+
+void removeRedundant(jarTask){
+    jarTask.exclude(".cache")
+    jarTask.exclude("assets/makeobsidiancry/lang/unfinished")
+    jarTask.exclude("assets/makeobsidiancry/lang/default")
+}
+
+jar.finalizedBy('reobfJar')
+addLicense(jar)
+removeRedundant(jar)
+
+publishing {
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
