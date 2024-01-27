@@ -3,7 +3,7 @@ loaderVersion="[47,)"
 license="MIT"
 
 [[mods]]
-modId="makeobsidancry"
+modId="makeobsidiancry"
 version="1.0.0"
 displayName="MakeObsidianCry"
 displayURL="https://github.com/HiSkyZen/MakeObsidianCry"
@@ -11,7 +11,7 @@ logoFile="pack.png"
 authors="HiSkyZen"
 description="Just a Simple One-Recipe Mod. Now, Make Obsidian Cry!"
 
-[[dependencies.makeobsidancry]]
+[[dependencies.makeobsidiancry]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.20.1,)"
